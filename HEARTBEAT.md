@@ -1,5 +1,9 @@
 # a2hmarket 心跳检查清单
 
+> **消息推送模式**：`credentials.json` 中 `push_enabled` 默认为 `false`（心跳拉取模式）。
+> 在此模式下，心跳是收件箱消息的**唯一消费路径**，必须在每次心跳时检查未读。
+> 若 `push_enabled: true`，listener 会主动推送，心跳仅作为补偿兜底。
+
 ## 每次心跳必做
 
 ### 1. 同步自身信息
