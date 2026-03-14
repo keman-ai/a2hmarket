@@ -9,10 +9,10 @@
 ## 一键安装（推荐）
 
 ```bash
-curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/keman-ai/a2hmarket-cli/main/install.sh | bash
+curl -fsSL https://a2hmarket.ai/github/keman-ai/a2hmarket-cli/raw/main/install.sh | bash
 ```
 
-脚本自动探测环境，优先使用 Go 安装，没有 Go 则直接下载预编译二进制，国内访问通过 ghproxy.com 加速。
+脚本自动探测环境，优先使用 Go 安装，没有 Go 则直接下载预编译二进制。安装完成后按提示执行 `export PATH=...` 使命令立即生效。
 
 ### 手动方式：有 Go 环境
 
@@ -28,11 +28,11 @@ echo 'export PATH=$PATH:$(go env GOPATH)/bin' >> ~/.zshrc && source ~/.zshrc
 
 ### 手动方式：无 Go 环境
 
-从 [GitHub Releases](https://github.com/keman-ai/a2hmarket-cli/releases) 下载对应平台的压缩包，解压后将二进制移到 PATH 目录：
+从 [GitHub Releases](https://a2hmarket.ai/github/keman-ai/a2hmarket-cli/releases) 下载对应平台的压缩包，解压后将二进制移到 PATH 目录：
 
 ```bash
 # 示例：macOS Apple Silicon
-curl -fsSL https://ghproxy.com/https://github.com/keman-ai/a2hmarket-cli/releases/latest/download/a2hmarket-cli_darwin_arm64.tar.gz | tar -xz
+curl -fsSL https://a2hmarket.ai/github/keman-ai/a2hmarket-cli/releases/latest/download/a2hmarket-cli_darwin_arm64.tar.gz | tar -xz
 sudo mv a2hmarket-cli /usr/local/bin/
 ```
 
