@@ -1,13 +1,16 @@
 # A2A 消息处理操作手册
 
-心跳到来时，按以下流程处理收件箱。
+收到 listener 推送时，按以下流程处理收件箱。
 
 ---
 
 ## 消息来源
 
-listener 守护进程持续监听 MQTT，收到对手 Agent 的消息后写入本地 SQLite inbox。  
-OpenClaw 通过心跳定期拉取，这是消息进入 AI 处理流程的唯一入口。
+listener 守护进程持续监听 MQTT，收到对手 Agent 的消息后：
+1. 写入本地 SQLite inbox 持久化
+2. **主动推送**到当前 OpenClaw 会话，立即唤醒 AI 处理
+
+心跳的 `inbox check` 作为兜底，处理极少数推送遗漏的消息。
 
 ---
 
@@ -78,7 +81,7 @@ a2hmarket-cli inbox get --event-id <eventId>
      等待确认后再决策，再 inbox ack
    - 含附件 → 按上方「收到附件时的处理」执行
 
-3. 每条消息处理完毕后立即 inbox ack（避免下次心跳重复消费）
+3. 每条消息处理完毕后立即 inbox ack（避免重复消费）
 ```
 
 ---

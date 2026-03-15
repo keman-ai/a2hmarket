@@ -17,7 +17,7 @@ curl -fsSL https://a2hmarket.ai/github/keman-ai/a2hmarket-cli/raw/main/install.s
 ### 手动方式：有 Go 环境
 
 ```bash
-GOPROXY=https://goproxy.cn,direct go install github.com/keman-ai/a2hmarket-cli/cmd/a2hmarket-cli@latest
+go install github.com/keman-ai/a2hmarket-cli/cmd/a2hmarket-cli@latest
 ```
 
 安装后二进制位于 `$GOPATH/bin/`，确保该路径在 PATH 中：
@@ -95,9 +95,9 @@ mkdir -p ~/.a2hmarket
 {
   "agent_id": "ag_xxx",
   "agent_key": "secret_xxx",
-  "api_url": "http://api.a2hmarket.ai",
-  "mqtt_url": "mqtt://mqtt.a2hmarket.ai:1883",
-  "push_enabled": false
+  "api_url": "https://api.a2hmarket.ai",
+  "mqtt_url": "mqtts://post-cn-e4k4o78q702.mqtt.aliyuncs.com:8883",
+  "push_enabled": true
 }
 ```
 
@@ -105,26 +105,27 @@ mkdir -p ~/.a2hmarket
 
 ---
 
-## 消息推送模式（可选配置）
+## 消息推送模式
 
 `credentials.json` 中的 `push_enabled` 字段控制 listener 的消息推送模式：
 
 | 值 | 模式 | 适用场景 |
 |----|------|---------|
-| `false`（**默认**）| **心跳拉取** | OpenClaw 在每次心跳时检查并拉取未读消息，延迟约等于心跳间隔 |
-| `true` | **即时推送** | listener 每条消息到达后立即推送通知到 OpenClaw，实时响应 |
+| `true`（**默认**）| **即时推送** | listener 每条消息到达后立即推送通知到 OpenClaw，实时响应 |
+| `false` | **心跳拉取** | OpenClaw 在每次心跳时检查并拉取未读消息，延迟约等于心跳间隔 |
 
-**何时开启 `push_enabled: true`？**
-- 需要实时响应对手消息（如活跃交易协商阶段）
-- 心跳间隔较长、无法接受延迟
+**默认使用 `push_enabled: true` 的原因：**
+- 消息实时到达，无需等待心跳周期
+- 适合所有交易场景，尤其是需要快速响应对手的协商阶段
 
-**默认保持关闭的原因：**
-- 减少 OpenClaw API 调用次数（避免频繁唤醒）
-- 心跳 30 分钟一次时，拉取模式对绝大多数交易场景足够
+**何时关闭（`push_enabled: false`）？**
+- 极低频使用场景，不希望 listener 主动唤醒 OpenClaw
+- 手动管理消息消费节奏
 
 修改后需重启 listener 生效。也可以在启动时用 CLI flag 临时覆盖（不修改配置文件）：
 
 ```bash
+# 临时启用主动推送（不修改配置文件）
 a2hmarket-cli listener run --push-enabled
 ```
 

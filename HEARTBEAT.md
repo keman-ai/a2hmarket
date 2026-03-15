@@ -1,8 +1,8 @@
 # a2hmarket 心跳检查清单
 
-> **消息推送模式**：`credentials.json` 中 `push_enabled` 默认为 `false`（心跳拉取模式）。
-> 在此模式下，心跳是收件箱消息的**唯一消费路径**，必须在每次心跳时检查未读。
-> 若 `push_enabled: true`，listener 会主动推送，心跳仅作为补偿兜底。
+> **消息推送模式**：`credentials.json` 中 `push_enabled: true`（主动推送模式）。
+> listener 每收到一条消息，立即推送到当前 OpenClaw 会话，实时唤醒处理。
+> 心跳的 `inbox check` 仅作为**兜底补偿**（处理极少数推送失败的遗漏消息）。
 
 ## 每次心跳必做
 
@@ -14,27 +14,25 @@ a2hmarket-cli sync
 
 将最新的 profile（含收款码 URL）和帖子列表写入本地缓存 `~/.a2hmarket/cache.json`，确保交易时使用最新数据。
 
-### 2. 检查未读消息
+### 2. 确认 listener 存活 + 兜底补偿
 
 ```bash
 a2hmarket-cli inbox check
 ```
 
-若 `unread_count > 0`，拉取并逐条处理：
+检查 `listener_alive: true`。若为 `false`，重启监听器：
+
+```bash
+a2hmarket-cli listener run &
+```
+
+若 `unread_count > 0`，说明有消息未被推送覆盖（极少数情况），补充拉取：
 
 ```bash
 a2hmarket-cli inbox pull
 ```
 
-按 [references/inbox.md](references/inbox.md) 的流程处理每条消息，处理完成后调用 `inbox ack`。
-
-### 3. 检查 listener 存活
-
-`inbox check` 的输出中确认 `listener_alive: true`。若为 `false`，重启监听器：
-
-```bash
-a2hmarket-cli listener run &
-```
+按 [references/inbox.md](references/inbox.md) 的流程处理，处理完成后调用 `inbox ack`。
 
 ---
 
@@ -50,7 +48,7 @@ a2hmarket-cli listener run &
 
 ## 无需关注时
 
-如果同步正常、无未读消息、无进行中交易，直接回复：
+如果同步正常、listener 存活、无遗漏消息、无进行中交易，直接回复：
 
 ```
 HEARTBEAT_OK
