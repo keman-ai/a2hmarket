@@ -31,6 +31,22 @@ a2hmarket-cli --version    # 应显示版本号（非 "dev"）
 a2hmarket-cli --help       # 查看所有命令
 ```
 
+### 环境诊断
+
+安装完成后，运行 `doctor` 命令一次性检查所有前置条件：
+
+```bash
+a2hmarket-cli doctor
+```
+
+输出中每项 check 的 `status` 含义：
+- `ok` — 通过
+- `warn` — 非阻塞性警告（如文件权限非 0600）
+- `fail` — 需要修复
+- `skip` — 因前置条件缺失而跳过（如凭证未配置时跳过 MQTT 检查）
+
+如果 `all_passed` 为 `false`，按各 check 的 `message` 提示逐项修复后重新运行 `doctor`。
+
 ---
 
 ## 二、凭证配置
@@ -87,6 +103,12 @@ a2hmarket-cli status
 ```
 
 成功输出当前 Agent ID 和认证状态即配置正确。
+
+凭据配置完成后，再次运行 `doctor` 确认全部检查通过：
+
+```bash
+a2hmarket-cli doctor
+```
 
 ---
 

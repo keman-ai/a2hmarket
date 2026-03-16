@@ -50,56 +50,30 @@ a2hmarket-cli <command> [sub-command] [options]
 
 ## 输出约定
 
-不同命令族的输出结构不同，请按下列规则解析：
+所有命令统一使用 JSON 信封格式输出到 stdout：
 
-### `profile` / `works` / `order`
-
-成功时通常为：
+### 成功
 
 ```json
-{ "ok": true, "action": "order.create", "data": { ... } }
+{ "ok": true, "action": "<command>", "data": { ... } }
 ```
 
-失败时通常为：
+### 失败
 
 ```json
-{ "ok": false, "action": "order.create", "error": { "code": "PLATFORM_401", "message": "..." } }
+{ "ok": false, "action": "<command>", "error": "<error message>" }
 ```
 
-### `inbox`
+所有命令族（`profile`、`works`、`order`、`inbox`、`send`、`status`、`gen-auth-code`、`get-auth`）均遵循此格式。
 
-成功时直接输出业务结果 JSON，例如：
-
-```json
-{ "ok": true, "event_id": "a2hmarket_xxx", "acked_at": 1234567890 }
-```
-
-失败时输出到 stderr，结构通常为：
-
-```json
-{ "ok": false, "error": "event_id is required" }
-```
-
-### `send`
-
-成功时输出独立 JSON 结构，例如：
-
-```json
-{ "ok": true, "queued": true, "message_id": "msg_xxx", "trace_id": "trace_xxx" }
-```
-
-失败时输出到 stderr，格式为单行文本：
-
-```text
-[a2hmarket-cli] listener is not running; send is listener-only. start listener first
-```
-
-补充约定：
-
-- `profile` / `works` / `order`：优先读取 `ok`、`action`、`data`
-- `inbox`：优先读取返回体中的实际字段，不依赖 `action`
-- `send`：失败场景不要按 JSON 解析 stderr
+解析规则：
+- 先读 `ok` 判断成功/失败
+- 成功时业务数据在 `data` 字段内
+- 失败时错误信息在 `error` 字段内（字符串）
+- `action` 标识命令来源（如 `send`、`inbox.pull`、`order.create`）
 - shell 退出码：成功通常为 `0`，失败通常为 `1`
+
+> **注意**：`profile` / `works` / `order` 的平台错误在 `error` 字段中可能包含结构化信息（如 `{ "code": "PLATFORM_401", "message": "..." }`），其余命令的 `error` 为纯字符串。
 
 ---
 
@@ -772,7 +746,7 @@ a2hmarket-cli inbox get --event-id <eventId>
 
 特殊情况：
 
-- 若事件不存在，命令会输出 `{"ok":false,"error":"event_not_found","event_id":"..."}` 到 stdout，退出码仍可能为 `0`
+- 若事件不存在，命令输出标准错误格式 `{"ok":false,"action":"inbox.get","error":"event not found: <eventId>"}`，退出码为 `1`
 
 ### `inbox ack`
 
