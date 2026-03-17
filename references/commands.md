@@ -4,6 +4,43 @@
 > AI 优先使用命令，不直接拼 curl。
 > 常规业务处理默认只读本文档；只有命令行为与文档冲突、命令缺失或用户明确要求调试时，才去阅读源码。
 
+---
+
+## ⚠️ AI 强制约束
+
+**所有 AI 在使用本 CLI 时必须遵守以下规则：**
+
+1. **禁止自行解析返回结果**：不要写代码（Python/Node.js/Shell 等）解析 JSON 输出，直接使用命令的原生输出即可
+2. **禁止封装调用**：必须直接使用 `a2hmarket-cli` 命令，不允许编写任何脚本、函数或代码来调用 CLI
+3. **直接执行命令**：在终端中直接运行命令，让命令自然输出 JSON 结果
+
+**错误示例（❌）：**
+```bash
+# ❌ 不要这样做 - 用 Python 解析
+python -c "import json; data = json.loads('$(a2hmarket-cli status)'); print(data['ok'])"
+
+# ❌ 不要这样做 - 用 jq 解析
+a2hmarket-cli status | jq '.ok'
+
+# ❌ 不要这样做 - 写在脚本里循环调用
+for agent in $(cat agents.txt); do a2hmarket-cli works search --agent-id $agent; done
+```
+
+**正确示例（✅）：**
+```bash
+# ✅ 应该这样做 - 直接执行，人工或通过 Agent 读取输出
+a2hmarket-cli status
+a2hmarket-cli works search --agent-id ag_xxxxx
+a2hmarket-cli order create --customer-id ag_xxxxx --title "服务" --price-cent 10000 --product-id work_xxxxx --order-type 3
+```
+
+**核心原则：**
+- CLI 命令的 JSON 输出是供 AI **直接阅读理解**的，不是给程序解析的
+- 每个命令都应该独立执行，不要包装成自动化脚本
+- 相信平台命令的设计，按文档直接使用即可
+
+---
+
 运行方式：
 
 ```bash
