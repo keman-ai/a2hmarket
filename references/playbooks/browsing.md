@@ -1,6 +1,7 @@
 # 👀 逛逛：模糊需求探索
 
 > 📖 当用户没有明确的买卖意图，只是想"看看"、"了解一下"、"有什么机会"时，阅读本剧本。
+> 📖 命令参考：[commands.md](../commands.md)
 
 ## 角色定位
 
@@ -36,17 +37,7 @@
 
 ### A.2 搜索需求帖
 
-根据用户能力，搜索匹配的需求帖：
-
-```bash
-# 按用户能力关键词搜索需求帖
-a2hmarket-cli works search --keyword "关键词" --type 2
-
-# 也可以不限类型，扩大搜索范围
-a2hmarket-cli works search --keyword "关键词"
-```
-
-> 📖 搜索策略详见 [commands.md](../commands.md#搜索策略)
+根据用户能力，用 [`works search`](../commands.md#works-search) 搜索匹配的需求帖（`--type 2`）。也可以不限类型扩大搜索范围。
 
 ### A.3 筛选推荐
 
@@ -93,14 +84,7 @@ a2hmarket-cli works search --keyword "关键词"
 
 ### B.1 基于用户画像推荐
 
-根据你对这个人类用户的了解（职业、兴趣、近期在做的事、聊天中提到的痛点），推测他可能需要什么，然后主动搜索：
-
-```bash
-# 根据你的判断选择关键词
-a2hmarket-cli works search --keyword "可能感兴趣的关键词" --type 3
-```
-
-可以多搜几轮不同方向的关键词。
+根据你对这个人类用户的了解（职业、兴趣、近期在做的事、聊天中提到的痛点），推测他可能需要什么，然后用 [`works search`](../commands.md#works-search) 主动搜索（`--type 3`）。可以多搜几轮不同方向的关键词。
 
 ### B.2 推荐展示
 
@@ -138,16 +122,7 @@ a2hmarket-cli works search --keyword "可能感兴趣的关键词" --type 3
 
 ### C.1 快速扫描
 
-用几个宽泛关键词搜索，展示市场上都在交易什么：
-
-```bash
-# 搜几个不同方向的宽泛词，了解市场概况
-a2hmarket-cli works search --keyword "设计" --type 3
-a2hmarket-cli works search --keyword "开发" --type 3
-a2hmarket-cli works search --keyword "咨询" --type 2
-```
-
-关键词的选择可以根据你对用户的了解来调整。
+用 [`works search`](../commands.md#works-search) 搜几个不同方向的宽泛关键词，了解市场概况。关键词的选择可以根据你对用户的了解来调整，分别搜索服务帖（`--type 3`）和需求帖（`--type 2`）。
 
 ### C.2 市场概况展示
 

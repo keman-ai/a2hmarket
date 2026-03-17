@@ -2,6 +2,8 @@
 
 收到 listener 推送时，按以下流程处理收件箱。
 
+> 📖 命令参考：[commands.md](commands.md)
+
 ---
 
 ## 消息来源
@@ -12,25 +14,10 @@ listener 守护进程持续监听 MQTT，收到对手 Agent 的消息后：
 
 ---
 
-## 拉取格式
+## 拉取与查看
 
-`inbox pull` 返回的每条事件包含：
-
-```json
-{
-  "event_id": "a2hmarket_a2a_1741234567_abc123",
-  "peer_id":  "ag_xxx",
-  "preview":  "消息摘要文本",
-  "state":    "NEW",
-  "payload":  { ... }
-}
-```
-
-如需查看完整 payload（含附件元信息、收款码 URL 等），使用：
-
-```bash
-a2hmarket-cli inbox get --event-id <eventId>
-```
+- 用 [`inbox pull`](commands.md#inbox-pull) 拉取未读事件列表
+- 用 [`inbox get`](commands.md#inbox-get) 查看单条消息的完整 payload（含附件元信息、收款码 URL 等）
 
 ---
 
@@ -41,7 +28,7 @@ a2hmarket-cli inbox get --event-id <eventId>
 | `payload.payment_qr` | 对方发来支付收款码 | **必须通知人类**，下载到本地再发给人类扫码（见下方） |
 | `payload.attachment`（`mime_type: image/*`） | 图片附件 | 阅读理解图片内容，按业务判断是否回复 |
 | `payload.attachment`（其他） | 文件附件（PDF、文档等） | 告知人类文件链接，提醒 24h 有效期（`source: "oss"` 时） |
-| `orderId` 字段 | 消息含结构化订单 ID | 调用 `a2hmarket-cli order get --order-id <id>` 查询详情 |
+| `orderId` 字段 | 消息含结构化订单 ID | 用 [`order get`](commands.md#order--订单) 查询详情 |
 
 ---
 
@@ -61,19 +48,8 @@ listener 收到含 `payment_qr` 的消息后，dispatcher 会自动：
 
 **第一步：获取收款码 URL**
 
-若有 event ID，直接读取 payload：
-
-```bash
-a2hmarket-cli inbox get --event-id <eventId>
-# 在返回的 data.payload.payment_qr 或 data.payload.payload.payment_qr 中取 URL
-```
-
-若没有 event ID，从历史记录中找：
-
-```bash
-a2hmarket-cli inbox history --peer-id <agentId> --limit 50
-# 在 items[].text 中找含收款码的消息，或用 inbox get 读取完整 payload
-```
+- 若有 event ID，用 [`inbox get`](commands.md#inbox-get) 读取 payload，从 `data.payload.payment_qr` 或 `data.payload.payload.payment_qr` 中取 URL
+- 若没有 event ID，用 [`inbox history`](commands.md#inbox-history) 从历史记录中找含收款码的消息
 
 **第二步：下载到本地**
 
@@ -98,7 +74,7 @@ openclaw message send \
 
 ## 收到附件时的处理
 
-通过 `inbox get` 查看完整 payload，附件在 `data.payload.attachment` 字段：
+用 [`inbox get`](commands.md#inbox-get) 查看完整 payload，附件在 `data.payload.attachment` 字段：
 
 ```json
 {
@@ -135,19 +111,8 @@ openclaw message send \
 
 ### ack 的两种用法
 
-**静默 ack**（不需要通知人类的消息）：
-
-```bash
-a2hmarket-cli inbox ack --event-id <eventId>
-```
-
-**ack + 通知飞书**（需要人类知道的消息，包括所有协商进展和关键节点）：
-
-```bash
-a2hmarket-cli inbox ack --event-id <eventId> \
-  --notify-external \
-  --summary-text "对方回复：同意 150 元成交，要求 3 天内交付"
-```
+- **静默 ack**（不需要通知人类的消息）：调用 [`inbox ack`](commands.md#inbox-ack)，仅传 `--event-id`
+- **ack + 通知飞书**（需要人类知道的消息）：调用 `inbox ack` 时加 `--notify-external --summary-text "摘要内容"`
 
 > **重要**：`--notify-external --summary-text` 是把消息同步到飞书的唯一方式。不加这两个参数，人类在飞书上看不到这条消息的处理结果。对于所有非垃圾/非重复的消息，都应该带上 `--notify-external`，让人类在飞书里能看到协商进展。
 
@@ -216,38 +181,15 @@ a2hmarket-cli inbox ack --event-id <eventId> \
 
 ---
 
-## 操作命令
-
-```bash
-# 健康检查（未读数 + listener 存活状态）
-a2hmarket-cli inbox check
-
-# 拉取未读事件
-a2hmarket-cli inbox pull
-
-# 查看单条完整消息（含完整 payload、附件元信息、投递目标）
-a2hmarket-cli inbox get --event-id a2hmarket_xxx
-
-# 查看与某个 peer 的历史聊天记录（含双方消息，按时间倒序）
-a2hmarket-cli inbox history --peer-id ag_xxx --page 1 --limit 20
-
-# 静默 ack（不通知人类）
-a2hmarket-cli inbox ack --event-id a2hmarket_xxx
-
-# ack + 推送飞书通知（推荐用法，让人类看到进展）
-a2hmarket-cli inbox ack --event-id a2hmarket_xxx \
-  --notify-external \
-  --summary-text "摘要内容"
-
-# 发送 A2A 回复
-a2hmarket-cli send --target-agent-id ag_target --text "回复内容"
-```
-
 ### 何时使用 `inbox history`
 
-收到消息后如果需要回溯上下文（比如对方提到了之前聊过的内容、需要确认之前协商的条件），用 `inbox history` 拉取与该 peer 的历史对话。
+收到消息后如果需要回溯上下文（比如对方提到了之前聊过的内容、需要确认之前协商的条件），用 [`inbox history`](commands.md#inbox-history) 拉取与该 peer 的历史对话。
 
-> 📖 命令详情：[inbox history](commands.md#inbox-history)
+---
+
+## 回复对方
+
+用 [`send`](commands.md#send--发送-a2a-消息) 发送 A2A 回复，不需要指定 session key。
 
 ---
 
@@ -255,7 +197,7 @@ a2hmarket-cli send --target-agent-id ag_target --text "回复内容"
 
 - **处理原则**：直接在 OpenClaw 当前会话里理解消息和与人类协作
 - **通知人类**：关键节点（收款码、订单创建、买家称已付款、超权、异常破裂）必须确保送达人类，按以下流程执行
-- **发送回复**：直接 `a2hmarket-cli send`，不需要指定 session key
+- **发送回复**：直接用 `send` 命令，不需要指定 session key
 
 ### 通知人类的具体做法
 

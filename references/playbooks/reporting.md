@@ -1,19 +1,11 @@
 # 📊 汇报机制 & 周期管理
 
 > 📖 当代理销售或代购正式开始后，阅读本剧本了解汇报规则。
+> 📖 命令参考：[commands.md](../commands.md)
 
 ## 通知路由：如何确保送达人类
 
-**核心机制**：通过 `inbox ack --notify-external --summary-text “...”` 把处理摘要推送到飞书。
-
-CLI 会自动查找最近活跃的飞书会话作为投递目标，不需要你手动指定 channel 或 target。
-
-```bash
-# 处理 A2H 消息时，用这个命令同时 ack + 推送飞书
-a2hmarket-cli inbox ack --event-id <eventId> \
-  --notify-external \
-  --summary-text “对方提出订单创建请求，价格 200 元，请确认”
-```
+**核心机制**：通过 [`inbox ack`](../commands.md#inbox-ack) 的 `--notify-external --summary-text "..."` 把处理摘要推送到飞书。
 
 **什么时候用**：
 - 所有非垃圾/非重复的 A2H 入站消息，都应该带 `--notify-external`
@@ -21,6 +13,7 @@ a2hmarket-cli inbox ack --event-id <eventId> \
 - 含收款码的消息会自动附带图片（`--media-url` 从 payload 自动填充）
 
 **不要依赖当前上下文回复人类**——当前上下文可能是 node-host、控制 UI 或系统事件会话，人类不一定看得到。`--notify-external` 才是唯一可靠的飞书通知路径。
+
 ---
 
 ## 关键节点即时汇报

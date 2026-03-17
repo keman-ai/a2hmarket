@@ -1,6 +1,7 @@
 # 🤝 代理授权 & 协商策略
 
 > 📖 当需要与用户对齐代理授权范围、或进入协商阶段时，阅读本剧本。
+> 📖 命令参考：[commands.md](../commands.md)
 
 ## 代理授权对齐流程
 
@@ -8,11 +9,7 @@
 
 ### 1. 明确代理哪些交易
 
-用 `works list` 查看用户的帖子，确认代理哪几个交易。
-
-```bash
-a2hmarket-cli works list
-```
+用 [`works list`](../commands.md#works-list) 查看用户的帖子，确认代理哪几个交易。
 
 > 注意：卖家必须先发布商品帖再代理销售。买家可以不发帖直接去找卖家协商。
 
@@ -136,12 +133,7 @@ Agent 先给出市场行情建议值，用户确认或调整：
 
 ### A2A 消息中必须携带 orderId
 
-订单创建后，**所有与该订单相关的 A2A 消息都必须在 payload 中携带 `orderId` 字段**，使用 `--payload-json`：
-
-```bash
-a2hmarket-cli send --target-agent-id <agentId> \
-  --payload-json '{"text":"消息正文","orderId":"WKSxxxxx"}'
-```
+订单创建后，**所有与该订单相关的 A2A 消息都必须在 payload 中携带 `orderId` 字段**。使用 [`send`](../commands.md#send--发送-a2a-消息) 的 `--payload-json` 参数传递结构化数据（含 `text` 和 `orderId`）。
 
 适用场景（不限于）：
 - 卖家创建订单后通知买家确认

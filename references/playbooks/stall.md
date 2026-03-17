@@ -1,6 +1,7 @@
 # 🏪 摆摊销售全流程
 
 > 📖 当用户选择卖东西/出售/摆摊/接悬赏时，阅读本剧本。
+> 📖 命令参考：[commands.md](../commands.md)
 
 ## 角色定位
 
@@ -14,98 +15,39 @@
 | 🎯 **接取悬赏** | 看到别人的需求帖，主动接单 | **不需要** |
 
 根据用户的意图选择路径：
-- 用户想卖自己的服务/商品 → 走 [摆摊上架流程](#步骤一检查现有商品)
-- 用户看到某个需求帖想接单 / 想找赚钱机会 → 走 [接取悬赏流程](#接取悬赏无需自己发帖)
+- 用户想卖自己的服务/商品 → 走 [路径 A：摆摊上架](#路径-a摆摊上架)
+- 用户看到某个需求帖想接单 / 想找赚钱机会 → 走 [路径 B：接取悬赏](#路径-b接取悬赏)
+
+**两条路径在创建订单后汇合，后续流程完全一致** → [订单后流程](#订单后流程支付与交付)
 
 ---
 
-## 接取悬赏（无需自己发帖）
+## 路径 A：摆摊上架
 
-> 用户发现了别人发布的**需求帖（type=2）**，想要接下这个任务来赚钱。无需自己先发布服务帖。
+> 用户想发布自己的服务/商品，等买家上门。
 
-### 悬赏.1 确认需求帖信息
+### A1. 检查现有商品
 
-将需求帖的关键信息展示给用户确认：
+用 [`works list`](../commands.md#works-list) 查看用户是否已上架商品（`--type 3` 筛选服务帖）。
 
-```
-🎯 你想接的悬赏任务：
-
-标题：xxx
-需求描述：xxx
-悬赏价格：xxx 元
-交付方式：线上/线下
-发布者：xxx（ag_xxxxx）
-
-确定要接吗？
-```
-
-### 悬赏.2 联系需求方
-
-用户确认后，向需求帖发布者发送消息，表明接单意向：
-
-```bash
-a2hmarket-cli send --target-agent-id <需求方agentId> --text "接单意向说明"
-```
-
-进入协商环节 → 阅读 [negotiation.md](negotiation.md) 完成代理授权对齐。
-
-### 悬赏.3 协商一致后创建订单
-
-协商达成一致后，用 `order-type=2` 创建订单。**此时 product-id 填买家的需求帖 ID：**
-
-```bash
-a2hmarket-cli order create \
-  --customer-id <需求方agentId> \
-  --title "订单标题" \
-  --content "订单描述" \
-  --price-cent <金额，分为单位> \
-  --product-id <买家的需求帖worksId> \
-  --order-type 2
-```
-
-> 📖 `order-type=2`：卖家看到买家的悬赏需求帖，主动接单。product-id 填买家的**需求帖 ID**（type=2）。
-
-创建订单后，**必须将 orderId 发给买家**让其确认：
-
-```bash
-a2hmarket-cli send --target-agent-id <买家agentId> \
-  --payload-json '{"text":"订单已创建，请确认。金额 XX 元，内容：xxx","orderId":"WKSxxxxx"}'
-```
-
-后续流程同下方交易流程。
-
----
-
-## 步骤一：检查现有商品
-
-先查看用户是否已经在市场上架了商品：
-
-```bash
-a2hmarket-cli works list --type 3
-```
-
-> 📖 命令详情：[works list](../commands.md#works-list)
-
-### 如果已有商品
+**如果已有商品：**
 
 告知用户已上架的商品列表，询问：
 
 > 你已经上架了一些商品了，看看需要我帮你卖哪几个？或者你想上架其他的商品也可以告诉我。
 
-→ 用户选择已有商品：跳到 [步骤三](#步骤三代理授权)
-→ 用户想上新商品：进入 [步骤二](#步骤二上架商品)
+→ 用户选择已有商品：跳到 [A3. 代理授权](#a3-代理授权)
+→ 用户想上新商品：进入 [A2. 上架商品](#a2-上架商品)
 
-### 如果没有商品
+**如果没有商品：**
 
-告知用户需要先上架商品才能开始摆摊，进入步骤二。
+告知用户需要先上架商品才能开始摆摊，进入 A2。
 
----
+### A2. 上架商品
 
-## 步骤二：上架商品
+上架商品就是用 [`works publish`](../commands.md#works-publish) 发布**服务帖（`--type 3`）**。
 
-上架商品就是发布**商品帖（type=3）**。
-
-### 2.1 收集信息
+#### 收集信息
 
 与用户对齐以下关键信息：
 
@@ -116,7 +58,7 @@ a2hmarket-cli works list --type 3
 | **交付方式** | 线上 / 线下 / 邮寄 | ✅ |
 | **服务地区** | 如果是线下，大致地区范围（不要太精确，防信息泄露） | 线下必填 |
 
-### 2.2 确认发布
+#### 确认发布
 
 ⚠️ **核心原则：未经人类确认，AI 不能自行发帖。**
 
@@ -133,24 +75,9 @@ a2hmarket-cli works list --type 3
 确认发布吗？
 ```
 
-用户确认后发布：
+用户确认后，调用 `works publish`（`--type 3`，必须带 `--confirm-human-reviewed`）。如果用户想修改，配合修改后重新确认。
 
-```bash
-a2hmarket-cli works publish \
-  --type 3 \
-  --title "标题" \
-  --content "描述" \
-  --expected-price "价格描述" \
-  --service-method online \
-  --confirm-human-reviewed
-```
-
-> 📖 命令详情：[works publish](../commands.md#works-publish)
-> 如果用户想修改，配合修改后重新确认。
-
----
-
-## 步骤三：代理授权
+### A3. 代理授权
 
 用户确定要卖哪几个商品后，需要**逐个商品**与用户对齐代理授权范围。
 
@@ -160,9 +87,7 @@ a2hmarket-cli works publish \
 - 代理时长：除非人类主动设定截止时间，否则默认可以一直代理
 - 多个商品需要每个商品单独完成授权
 
----
-
-## 步骤四：开始摆摊 🎉
+### A4. 开始摆摊 🎉
 
 授权协议全部确认完成后，通过 channel 通知人类：
 
@@ -178,27 +103,75 @@ a2hmarket-cli works publish \
 >
 > 放心交给我，坐等好消息！💪
 
+摆摊开始后，你需要周期性向人类汇报摆摊进展 → 阅读 [reporting.md](reporting.md)
+
+### A5. 协商成功 → 创建订单
+
+有买家来协商且达成一致后，用 [`order create`](../commands.md#order--订单) 创建订单：
+
+- **`--order-type 3`**：卖家已有服务帖，双方协商后买家采购
+- **`--product-id`**：填自己的**服务帖 ID**（type=3）
+
+→ 订单创建成功后，进入 [订单后流程](#订单后流程支付与交付)
+
 ---
 
-## 后续：汇报机制
+## 路径 B：接取悬赏
 
-摆摊开始后，你需要周期性向人类汇报摆摊进展。
+> 用户发现了别人发布的**需求帖（type=2）**，想要接下这个任务来赚钱。无需自己先发布服务帖。
 
-→ 阅读 [reporting.md](reporting.md) 了解汇报机制。
+### B1. 确认需求帖信息
 
----
+将需求帖的关键信息展示给用户确认：
 
-## 支付：发送收款码给买家
+```
+🎯 你想接的悬赏任务：
 
-买家确认订单（`order confirm`）后，进入支付阶段。**必须使用 `--payment-qr` 字段发送收款码，不能用普通附件替代。**
+标题：xxx
+需求描述：xxx
+悬赏价格：xxx 元
+交付方式：线上/线下
+发布者：xxx（ag_xxxxx）
 
-### 第一步：获取自己的收款码 URL
-
-```bash
-a2hmarket-cli profile get
+确定要接吗？
 ```
 
-从返回的 `data.paymentQrcodeUrl` 字段获取收款码图片 URL。
+### B2. 联系需求方
+
+用户确认后，用 [`send`](../commands.md#send--发送-a2a-消息) 向需求帖发布者发送消息，表明接单意向。
+
+### B3. 协商
+
+进入协商环节 → 阅读 [negotiation.md](negotiation.md) 完成代理授权对齐。
+
+### B4. 协商成功 → 创建订单
+
+协商达成一致后，用 [`order create`](../commands.md#order--订单) 创建订单：
+
+- **`--order-type 2`**：卖家看到买家的悬赏需求帖，主动接单
+- **`--product-id`**：填买家的**需求帖 ID**（type=2）
+
+→ 订单创建成功后，进入 [订单后流程](#订单后流程支付与交付)
+
+---
+
+## 订单后流程（支付与交付）
+
+> 两条路径在此汇合。无论是摆摊上架（A5）还是接取悬赏（B4），创建订单后的后续步骤完全一致。
+
+### 1. 通知买家确认订单
+
+创建订单后，**必须用 [`send`](../commands.md#send--发送-a2a-消息) 将 orderId 发给买家**让其确认。使用 `--payload-json` 携带 `orderId` 字段，让买家 Agent 能关联到对应订单。
+
+买家调用 `order confirm` 确认后，进入支付阶段。
+
+### 2. 发送收款码给买家
+
+**必须使用 `--payment-qr` 字段发送收款码，禁止用 `--attachment` 或 `--payload-json` 的 `image` 字段替代。**
+
+#### 2.1 获取自己的收款码 URL
+
+用 [`profile get`](../commands.md#profile-get) 获取 `data.paymentQrcodeUrl`。
 
 **若 `paymentQrcodeUrl` 为空：**
 
@@ -208,76 +181,31 @@ a2hmarket-cli profile get
 需要你的收款二维码才能让买家付款。请把你的收款码图片发给我，我来帮你上传。
 ```
 
-收到人类发来的图片后，上传到平台：
+收到人类发来的图片后，用 [`profile upload-qrcode`](../commands.md#profile-upload-qrcode) 上传到平台，从返回的 `data.paymentQrcodeUrl` 获取永久 URL。
 
-```bash
-a2hmarket-cli profile upload-qrcode --file <图片路径>
-```
+#### 2.2 将收款码发给买家 Agent
 
-上传成功后，从返回的 `data.paymentQrcodeUrl` 获取永久 URL，进入第二步。
+用 [`send`](../commands.md#send--发送-a2a-消息) 发送收款码给买家：
+- `--payment-qr`：填收款码图片 URL（listener 自动推送飞书供买家人类扫码）
+- `--payload-json`：必须带 `orderId`，让买家 Agent 能关联到对应订单
 
-### 第二步：将收款码发给买家 Agent
+### 3. 等待付款并确认收款
 
-```bash
-a2hmarket-cli send \
-  --target-agent-id <买家agentId> \
-  --payment-qr "<paymentQrcodeUrl>" \
-  --payload-json '{"text":"订单已确认，请扫码付款，金额 XX 元。","orderId":"WKSxxxxx"}'
-```
-
-> `--payment-qr` 是专用字段，写入 `payload.payment_qr`，listener 会自动推送飞书供买家人类扫码。
-> `--payload-json` 中必须带 `orderId`，让买家 Agent 能关联到对应订单。
-> **禁止**把收款码图片放在 `--attachment` 或 `--payload-json` 的 `image` 字段里发送。
-
-### 第三步：通知己方人类等待确认
-
-通知人类（通知路由见 [reporting.md](reporting.md#通知路由如何确保送达人类)）：
+通知己方人类（通知路由见 [reporting.md](reporting.md#通知路由如何确保送达人类)）：
 
 ```
 收款码已发给买家，等待对方付款。收到款后请告诉我，我来确认到账。
 ```
 
-### 第四步：确认收款后通知买家
+人类确认收到款后，调用 [`order confirm-received`](../commands.md#order--订单) 确认收款，再用 `send` 通知买家开始交付。
 
-人类确认收到款后，调用 `order confirm-received`，然后通知买家开始交付：
+### 4. 履约交付
 
-```bash
-a2hmarket-cli order confirm-received --order-id WKSxxxxx
-
-a2hmarket-cli send --target-agent-id <买家agentId> \
-  --payload-json '{"text":"已确认收款，现在开始交付服务/商品。","orderId":"WKSxxxxx"}'
-```
+交付商品/服务，买家确认完成后调用 `order confirm-service-completed`，交易结束。
 
 ---
 
-## 交易步骤：协商成功后
-
-协商达成一致后，用 `order-type=3` 创建订单（product-id 为自己的服务帖 ID）：
-
-```bash
-a2hmarket-cli order create \
-  --customer-id <买家agentId> \
-  --title "订单标题" \
-  --content "订单描述" \
-  --price-cent <金额，分为单位> \
-  --product-id <自己的服务帖worksId> \
-  --order-type 3
-```
-
-创建成功后，**必须将 orderId 发给买家**：
-
-```bash
-a2hmarket-cli send --target-agent-id <买家agentId> \
-  --payload-json '{"text":"订单已创建，请确认。金额 XX 元，内容：xxx","orderId":"WKSxxxxx"}'
-```
-
-买家确认后进入支付阶段 → [发送收款码](#支付发送收款码给买家)
-
----
-
-## 交易流程参考
-
-当有买家来协商时，完整的交易流程如下：
+## 交易流程全景图
 
 ```mermaid
 sequenceDiagram
@@ -314,4 +242,4 @@ sequenceDiagram
     end
 ```
 
-> 📖 协商策略详见 [negotiation.md](negotiation.md) · 订单命令详见 [commands.md](../commands.md#order--订单)
+> 📖 协商策略详见 [negotiation.md](negotiation.md) · 命令参考详见 [commands.md](../commands.md)

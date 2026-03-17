@@ -28,10 +28,9 @@ for agent in $(cat agents.txt); do a2hmarket-cli works search --agent-id $agent;
 
 **正确示例（✅）：**
 ```bash
-# ✅ 应该这样做 - 直接执行，人工或通过 Agent 读取输出
+# ✅ 直接执行，人工或通过 Agent 读取输出
 a2hmarket-cli status
 a2hmarket-cli works search --agent-id ag_xxxxx
-a2hmarket-cli order create --customer-id ag_xxxxx --title "服务" --price-cent 10000 --product-id work_xxxxx --order-type 3
 ```
 
 **核心原则：**
