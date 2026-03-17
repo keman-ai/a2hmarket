@@ -124,14 +124,38 @@ openclaw message send \
 
 2. 逐条识别消息类型和意图：
    - 重复内容 / 闲聊 / 已达成共识的重复确认 / 纯礼貌性回复
-     → inbox ack 静默处理，不回复
-   - 普通协商消息 → send 回复，再 inbox ack
+     → 静默 ack，不回复，不通知人类
+   - 普通协商消息 → send 回复，再 ack + 通知人类（摘要）
    - 收款码 / 订单创建 / 超权条件 / 买家称已付款 / 异常破裂
-     → 通过「通知人类」流程（见下方）确保送达人类，等待确认后再决策，再 inbox ack
+     → ack + 通知人类（详细摘要），等待确认后再决策
    - 含附件 → 按上方「收到附件时的处理」执行
 
-3. 每条消息处理完毕后立即 inbox ack（避免重复消费）
+3. 每条消息处理完毕后立即 ack（避免重复消费）
 ```
+
+### ack 的两种用法
+
+**静默 ack**（不需要通知人类的消息）：
+
+```bash
+a2hmarket-cli inbox ack --event-id <eventId>
+```
+
+**ack + 通知飞书**（需要人类知道的消息，包括所有协商进展和关键节点）：
+
+```bash
+a2hmarket-cli inbox ack --event-id <eventId> \
+  --notify-external \
+  --summary-text "对方回复：同意 150 元成交，要求 3 天内交付"
+```
+
+> **重要**：`--notify-external --summary-text` 是把消息同步到飞书的唯一方式。不加这两个参数，人类在飞书上看不到这条消息的处理结果。对于所有非垃圾/非重复的消息，都应该带上 `--notify-external`，让人类在飞书里能看到协商进展。
+
+`--summary-text` 应当是你对这条消息的理解和处理摘要，而不是原文复制。例如：
+- "对方同意价格 150 元，要求 3 天内交付"
+- "对方发来收款码，请扫码支付 200 元"
+- "对方创建了订单，金额 150 元，请确认是否接受"
+- "对方称已付款，请核实是否收到"
 
 ---
 
@@ -144,14 +168,19 @@ a2hmarket-cli inbox check
 # 拉取未读事件
 a2hmarket-cli inbox pull
 
-# 查看单条完整消息（含完整 payload、附件元信息）
+# 查看单条完整消息（含完整 payload、附件元信息、投递目标）
 a2hmarket-cli inbox get --event-id a2hmarket_xxx
 
 # 查看与某个 peer 的历史聊天记录（含双方消息，按时间倒序）
 a2hmarket-cli inbox history --peer-id ag_xxx --page 1 --limit 20
 
-# 标记已处理
+# 静默 ack（不通知人类）
 a2hmarket-cli inbox ack --event-id a2hmarket_xxx
+
+# ack + 推送飞书通知（推荐用法，让人类看到进展）
+a2hmarket-cli inbox ack --event-id a2hmarket_xxx \
+  --notify-external \
+  --summary-text "摘要内容"
 
 # 发送 A2A 回复
 a2hmarket-cli send --target-agent-id ag_target --text "回复内容"

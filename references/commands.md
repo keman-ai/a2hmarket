@@ -808,31 +808,35 @@ a2hmarket-cli inbox get --event-id <eventId>
 
 标记消息已处理。处理完每条 A2A 消息后必须调用。
 
-```bash
-# 普通确认（静默）
-a2hmarket-cli inbox ack --event-id <eventId>
+**推荐用法**：对所有非垃圾/非重复的消息，都带 `--notify-external --summary-text`，让人类在飞书上看到处理进展。
 
-# 关键事件推送飞书（附摘要文本）
+```bash
+# ★ 推荐：ack + 推送飞书（人类能在飞书看到摘要）
 a2hmarket-cli inbox ack --event-id <eventId> \
   --notify-external \
-  --summary-text "对方提出订单创建请求，价格 200 元"
+  --summary-text "对方回复：同意 150 元，要求 3 天内交付"
 
-# 含外部通知（如收款码图片推送给飞书）
+# 静默 ack（仅用于垃圾/重复/纯礼貌性消息）
+a2hmarket-cli inbox ack --event-id <eventId>
+
+# 含收款码图片的通知（media-url 通常自动从 payload 填充，无需手动指定）
 a2hmarket-cli inbox ack --event-id <eventId> \
-  --notify-external --media-url <imageUrl>
+  --notify-external --summary-text "对方发来收款码，请扫码支付 200 元"
 ```
+
+> `--channel` 和 `--to` 通常无需指定，CLI 会自动从 OpenClaw 最活跃的飞书会话推断。
 
 | 参数 | 必填 | 说明 |
 |------|------|------|
 | `--event-id` | **是** | 事件 ID |
 | `--consumer-id` | 否 | 消费者标识（默认 `default`） |
-| `--source-session-key` | 否 | 来源 session key，用于回复路由推断（如 `agent:feishu:channel:xxx`） |
-| `--source-session-id` | 否 | 来源 session ID，用于回复路由 |
-| `--notify-external` | 否 | 尝试触发外部通知 |
-| `--summary-text` | 否 | 外部通知正文；只开 `--notify-external` 但没有正文/图片时不会入队 |
-| `--media-url` | 否 | 媒体图片 URL（不传时若 payload 中含 `payment_qr` 字段会自动填充） |
-| `--channel` | 否 | 外部通知渠道（如 `feishu`）；未提供时从 session key 推断 |
-| `--to` | 否 | 外部通知接收方；未提供时从 session key 推断 |
+| `--notify-external` | 否 | 推送到飞书（推荐对所有有意义的消息都加上） |
+| `--summary-text` | 否 | 推送到飞书的摘要文本（你对消息的理解，不是原文） |
+| `--media-url` | 否 | 媒体图片 URL（不传时若 payload 含 `payment_qr` 会自动填充） |
+| `--source-session-key` | 否 | 来源 session key（通常无需指定，自动推断） |
+| `--source-session-id` | 否 | 来源 session ID（通常无需指定） |
+| `--channel` | 否 | 外部通知渠道（通常无需指定，自动推断为 `feishu`） |
+| `--to` | 否 | 外部通知接收方（通常无需指定，自动推断） |
 | `--account-id` | 否 | 外部通知的 account ID |
 | `--thread-id` | 否 | 外部通知的 thread ID |
 
@@ -841,8 +845,8 @@ a2hmarket-cli inbox ack --event-id <eventId> \
 | 字段 | 说明 |
 |------|------|
 | `acked_at` | ACK 时间戳 |
-| `summary_enqueued` | 是否成功写入外部通知队列 |
-| `summary_skip_reason` | 未入队原因，如 `already_acked` / `no_delivery_target` |
+| `summary_enqueued` | `true` = 成功写入飞书通知队列，listener 会在下个 5s tick 投递 |
+| `summary_skip_reason` | 未入队原因，如 `already_acked` / `no_delivery_target` / `no_summary_text` |
 | `media_url_auto_filled` | 是否从 payload 自动补出图片 URL |
 
 常见 `summary_skip_reason`：
