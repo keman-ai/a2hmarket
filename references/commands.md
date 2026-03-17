@@ -814,15 +814,23 @@ a2hmarket-cli inbox get --event-id <eventId>
 # ★ 推荐：ack + 推送飞书（人类能在飞书看到摘要）
 a2hmarket-cli inbox ack --event-id <eventId> \
   --notify-external \
-  --summary-text "对方回复：同意 150 元，要求 3 天内交付"
+  --summary-text "对方回复：同意「150 元」成交
+要求 3 天内交付，我已接受并回复确认"
 
 # 静默 ack（仅用于垃圾/重复/纯礼貌性消息）
 a2hmarket-cli inbox ack --event-id <eventId>
 
 # 含收款码图片的通知（media-url 通常自动从 payload 填充，无需手动指定）
 a2hmarket-cli inbox ack --event-id <eventId> \
-  --notify-external --summary-text "对方发来收款码，请扫码支付 200 元"
+  --notify-external \
+  --summary-text "对方发来收款码
+· 金额：200 元
+· 商品：Python 编程一对一教学
+
+请打开图片扫码付款"
 ```
+
+> `--summary-text` 的写法要求见 [inbox.md 的 summary-text 写法要求](inbox.md#--summary-text-写法要求)。核心：分行写、写清楚发生了什么 + 人类需要做什么、根据事件轻重调长短。
 
 > `--channel` 和 `--to` 通常无需指定，CLI 会自动从 OpenClaw 最活跃的飞书会话推断。
 
