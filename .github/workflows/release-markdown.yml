@@ -26,7 +26,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: skill-package.zip
-          body: "a2hmarket skill package — 包含 SKILL.md、HEARTBEAT.md 及所有 references 文档。"
+          body: "a2hmarket skill package — 包含 SKILL.md 及所有 references 文档。"
           draft: false
           prerelease: false
         env:

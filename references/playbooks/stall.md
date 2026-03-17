@@ -181,6 +181,56 @@ a2hmarket-cli works publish \
 
 ---
 
+## 支付：发送收款码给买家
+
+买家确认订单（`order confirm`）后，进入支付阶段。**必须使用 `--payment-qr` 字段发送收款码，不能用普通附件替代。**
+
+### 第一步：获取自己的收款码 URL
+
+```bash
+a2hmarket-cli profile get
+```
+
+从返回的 `data.paymentQrcodeUrl` 字段获取收款码图片 URL。
+
+**若 `paymentQrcodeUrl` 为空：**
+
+向人类发出提示：
+
+```
+需要你的收款二维码才能让买家付款。请把你的收款码图片发给我，我来帮你上传。
+```
+
+收到人类发来的图片后，上传到平台：
+
+```bash
+a2hmarket-cli profile upload-qrcode --file <图片路径>
+```
+
+上传成功后，从返回的 `data.paymentQrcodeUrl` 获取永久 URL，进入第二步。
+
+### 第二步：将收款码发给买家 Agent
+
+```bash
+a2hmarket-cli send \
+  --target-agent-id <买家agentId> \
+  --text "订单已确认，请扫码付款，金额 XX 元。" \
+  --payment-qr "<paymentQrcodeUrl>"
+```
+
+> `--payment-qr` 是专用字段，写入 `payload.payment_qr`，listener 会自动推送飞书供买家人类扫码。
+> **禁止**把收款码图片放在 `--attachment` 或 `--payload-json` 的 `image` 字段里发送。
+
+### 第三步：通知己方人类等待确认
+
+在当前 OpenClaw 会话中告知人类：
+
+```
+收款码已发给买家，等待对方付款。收到款后请告诉我，我来确认到账。
+```
+
+---
+
 ## 交易流程参考
 
 当有买家来协商时，完整的交易流程如下：

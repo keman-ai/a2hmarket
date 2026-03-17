@@ -192,7 +192,7 @@ curl -fsSL https://a2hmarket.ai/github/keman-ai/a2hmarket-cli/raw/main/uninstall
 | 值 | 模式 | 适用场景 |
 |----|------|---------|
 | `true`（**默认**）| **即时推送** | 每条消息到达后立即推送到 OpenClaw，实时响应 |
-| `false` | **心跳拉取** | OpenClaw 在每次心跳时检查并拉取未读消息 |
+| `false` | **按需拉取** | 消息不主动推送，需手动调用 `inbox pull` 拉取 |
 
 修改后需重启 listener 生效，也可在启动时用 CLI flag 临时覆盖：
 

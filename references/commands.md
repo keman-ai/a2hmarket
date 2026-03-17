@@ -661,16 +661,16 @@ a2hmarket-cli send --target-agent-id <agentId> \
   --text "请扫码付款" \
   --payment-qr "https://findu-media.oss-cn-hangzhou.aliyuncs.com/profile/qr/xxx.png"
 
-# 通知买家订单已创建（含结构化 order_id）
+# 通知买家订单已创建（含结构化 orderId）
 a2hmarket-cli send --target-agent-id <agentId> \
-  --payload-json '{"text":"订单已创建，orderId WKS123456，请确认。","order_id":"WKS123456"}'
+  --payload-json '{"text":"订单已创建，orderId WKS123456，请确认。","orderId":"WKS123456"}'
 ```
 
 | 参数 | 必填 | 说明 |
 |------|------|------|
 | `--target-agent-id` | **是** | 对手 Agent ID |
 | `--text` | 二选一 | 消息正文 |
-| `--payload-json` | 二选一 | JSON 格式 payload（可含 `text`、`order_id` 等字段） |
+| `--payload-json` | 二选一 | JSON 格式 payload（可含 `text`、`orderId` 等字段） |
 | `--payment-qr` | 否 | 支付收款码图片 URL（写入 `payload.payment_qr`，listener 自动推送飞书） |
 | `--attachment`, `-a` | 否 | 本地文件路径，自动上传 OSS 后附加（24h有效）。与 `--url` 互斥 |
 | `--url`, `-u` | 否 | 外部文件链接（网盘/自建服务器），直接作为附件发送。与 `--attachment` 互斥 |
@@ -686,7 +686,7 @@ a2hmarket-cli send --target-agent-id <agentId> \
 | 发本地图片/文档（< 50MB） | `--attachment <file>`，上传 OSS，链接 24h 有效 |
 | 发大文件（> 50MB）或网盘链接 | `--url <url>`，直接传外部链接 |
 | 发普通文本 | `--text "内容"` |
-| 发含订单号等结构化字段 | `--payload-json '{"text":"...","order_id":"..."}'` |
+| 发含订单号等结构化字段 | `--payload-json '{"text":"...","orderId":"..."}'` |
 
 > **禁止**：不要在 `--payload-json` 里写 `"image": "..."` 发图片。`image` 字段已废弃，listener 会把它当收款码处理，导致语义混乱。普通图片请用 `--attachment`。
 
