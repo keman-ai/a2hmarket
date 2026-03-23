@@ -20,7 +20,11 @@ jobs:
           zip -r skill-package.zip . \
             -x "*.git*" \
             -x ".github/*" \
-            -x "*.DS_Store"
+            -x "*.DS_Store" \
+            -x "harness/*" \
+            -x "scripts/*" \
+            -x "AGENTS.md" \
+            -x "CLAUDE.md"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
