@@ -17,30 +17,30 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Build release notes
+      - name: Read release notes
         id: notes
         run: |
-          # Find previous tag
-          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${GITHUB_REF_NAME}$" | head -1)
-
-          # Collect commit subjects since previous tag (or all if first release)
-          if [ -n "$PREV_TAG" ]; then
-            COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s" --no-merges)
+          if [ -f RELEASE_NOTES.md ]; then
+            {
+              echo "body<<RELEASE_EOF"
+              cat RELEASE_NOTES.md
+              echo ""
+              echo "RELEASE_EOF"
+            } >> "$GITHUB_OUTPUT"
           else
-            COMMITS=$(git log --pretty=format:"- %s" --no-merges)
+            # Fallback: list commits since previous tag
+            PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${GITHUB_REF_NAME}$" | head -1)
+            if [ -n "$PREV_TAG" ]; then
+              COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s" --no-merges)
+            else
+              COMMITS=$(git log --pretty=format:"- %s" --no-merges)
+            fi
+            {
+              echo "body<<RELEASE_EOF"
+              echo "$COMMITS"
+              echo "RELEASE_EOF"
+            } >> "$GITHUB_OUTPUT"
           fi
-
-          # Build release body
-          {
-            echo "body<<RELEASE_EOF"
-            echo "## What's Changed"
-            echo ""
-            echo "$COMMITS"
-            echo ""
-            echo "---"
-            echo "**Full Changelog**: https://github.com/${GITHUB_REPOSITORY}/compare/${PREV_TAG}...${GITHUB_REF_NAME}"
-            echo "RELEASE_EOF"
-          } >> "$GITHUB_OUTPUT"
 
       - name: Create Archive
         run: |
@@ -51,7 +51,8 @@ jobs:
             -x "harness/*" \
             -x "scripts/*" \
             -x "AGENTS.md" \
-            -x "CLAUDE.md"
+            -x "CLAUDE.md" \
+            -x "RELEASE_NOTES.md"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -74,6 +75,7 @@ jobs:
                    --exclude='scripts' \
                    --exclude='AGENTS.md' \
                    --exclude='CLAUDE.md' \
+                   --exclude='RELEASE_NOTES.md' \
                    --exclude='.DS_Store' \
                    . /tmp/skill-clean/
 

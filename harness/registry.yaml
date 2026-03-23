@@ -5,7 +5,7 @@ project:
   primary_languages:
     - markdown
     - yaml
-  version: "1.0.21"
+  version: "1.0.22"
   cli_tool: a2hmarket-cli
   cli_language: go
 

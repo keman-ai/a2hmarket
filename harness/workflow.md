@@ -70,22 +70,33 @@ a2hmarket-cli 发布新版本（新增/修改命令）
 确认所有文档变更已合入 main
     |
     v
-修改 SKILL.md frontmatter 中的 version 字段
+修改 SKILL.md frontmatter 中的 version 字段（同步 harness/registry.yaml）
     |
     v
-git tag v{version}
+编写 RELEASE_NOTES.md（见下方规则）
     |
     v
-git push origin v{version}
+git add && git commit && git tag v{version}
     |
     v
-GitHub Actions 自动打包 zip 并发布到 Release
+git push origin main v{version}
+    |
+    v
+GitHub Actions 自动打包 zip 并发布到 Release（读取 RELEASE_NOTES.md 作为描述）
 ```
 
 > **强制规则：文档变更合入 main 后必须立即打 tag 触发 Release。**
 > 用户和 AI Agent 通过 GitHub Release 获取最新 Skill 包，若不打 tag 则变更无法到达。
 > 版本号规则：除非特殊指定，否则只递增最后一位（patch），例如 `1.0.18` → `1.0.19`。
-> tag 版本必须与 SKILL.md frontmatter 中的 `version` 字段一致（同时更新 `harness/registry.yaml`）。
+> tag 版本必须与 SKILL.md frontmatter 中的 `version` 字段一致。
+
+> **Release Notes 规则：打 tag 前必须生成 `RELEASE_NOTES.md` 并提交。**
+> CI 优先读取此文件作为 GitHub Release 描述；若不存在则 fallback 到 commit 列表。
+> 编写要求：
+> 1. 英文，面向用户，说人话，不罗列 commit log
+> 2. 按类别分组：New Features / Improvements / Bug Fixes（没有的类别省略）
+> 3. 同一类事情合并为一条，只保留用户关心的变更，过滤掉 CI/chore/harness 等内部变更
+> 4. 每条用一句话说清楚对用户的影响
 
 ## 检查点
 

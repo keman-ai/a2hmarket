@@ -2,4 +2,5 @@ harness/ export-ignore
 scripts/ export-ignore
 AGENTS.md export-ignore
 CLAUDE.md export-ignore
+RELEASE_NOTES.md export-ignore
 .gitattributes export-ignore
