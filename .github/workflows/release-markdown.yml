@@ -35,3 +35,28 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish clean release branch
+        run: |
+          # 创建干净的 skill-only 目录
+          mkdir -p /tmp/skill-clean
+          rsync -a --exclude='.git' \
+                   --exclude='.github' \
+                   --exclude='.gitattributes' \
+                   --exclude='harness' \
+                   --exclude='scripts' \
+                   --exclude='AGENTS.md' \
+                   --exclude='CLAUDE.md' \
+                   --exclude='.DS_Store' \
+                   . /tmp/skill-clean/
+
+          # 推送到 release 分支
+          cd /tmp/skill-clean
+          git init
+          git checkout -b release
+          git add -A
+          git commit -m "release ${GITHUB_REF_NAME}"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push -f origin release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
