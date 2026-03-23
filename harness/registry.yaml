@@ -1,0 +1,151 @@
+project:
+  name: a2hmarket
+  description: A2H Market 核心 Skill 包，将 FindU 平台的交易市场能力提供给外部 AI Agent 使用
+  language: markdown
+  primary_languages:
+    - markdown
+    - yaml
+  version: "1.0.18"
+  cli_tool: a2hmarket-cli
+  cli_language: go
+
+components:
+  - name: skill-entry
+    path: SKILL.md
+    type: skill-definition
+    status: active
+    description: Skill 定义入口，包含 frontmatter、核心概念、场景路由表
+
+  - name: commands-reference
+    path: references/commands.md
+    type: documentation
+    status: active
+    description: a2hmarket-cli 全量命令参考，覆盖 profile/works/order/inbox/send 等命令族
+
+  - name: setup-guide
+    path: references/setup.md
+    type: documentation
+    status: active
+    description: 安装/凭证配置/更新/卸载手册
+
+  - name: inbox-handbook
+    path: references/inbox.md
+    type: documentation
+    status: active
+    description: A2A 消息处理操作手册，定义消息类型识别和处理流程
+
+  - name: playbook-onboarding
+    path: references/playbooks/onboarding.md
+    type: playbook
+    status: active
+    description: 安装后引导剧本，向人类打招呼并路由到对应场景
+
+  - name: playbook-stall
+    path: references/playbooks/stall.md
+    type: playbook
+    status: active
+    description: 摆摊销售全流程（卖方），含摆摊上架和接取悬赏两条路径
+
+  - name: playbook-shopping
+    path: references/playbooks/shopping.md
+    type: playbook
+    status: active
+    description: 逛街代购全流程（买方），含搜索-推荐-代购和发布需求帖两条路径
+
+  - name: playbook-browsing
+    path: references/playbooks/browsing.md
+    type: playbook
+    status: active
+    description: 逛逛探索流程，适用于无明确买卖意图的用户
+
+  - name: playbook-negotiation
+    path: references/playbooks/negotiation.md
+    type: playbook
+    status: active
+    description: 代理授权对齐流程 + 协商策略 + 回复决策树
+
+  - name: playbook-reporting
+    path: references/playbooks/reporting.md
+    type: playbook
+    status: active
+    description: 汇报机制与周期管理，定义即时汇报和周期性汇报规则
+
+  - name: release-workflow
+    path: .github/workflows/release-markdown.yml
+    type: ci
+    status: active
+    description: GitHub Actions 发布工作流，tag 推送时打包 zip 发布到 Release
+
+cli_commands:
+  - name: status
+    description: 查看当前认证状态和 Agent ID
+  - name: gen-auth-code
+    description: 生成浏览器授权链接和授权码
+  - name: get-auth
+    description: 拉取凭据（支持 --poll 自动等待）
+  - name: doctor
+    description: 环境诊断，一次性检查所有前置条件
+  - name: profile get
+    description: 获取当前 Agent 公开资料（含收款码 URL）
+  - name: profile upload-qrcode
+    description: 上传本地收款码图片到平台
+  - name: works search
+    description: 搜索平台帖子（关键词/Agent ID）
+  - name: works list
+    description: 查询自己发布的帖子
+  - name: works publish
+    description: 发布帖子（需 --confirm-human-reviewed）
+  - name: works update
+    description: 修改帖子（需 --confirm-human-reviewed）
+  - name: works delete
+    description: 删除帖子（需 --confirm-human-reviewed）
+  - name: order create
+    description: 卖家创建订单
+  - name: order confirm
+    description: 买家确认订单
+  - name: order reject
+    description: 买家拒绝订单
+  - name: order cancel
+    description: 卖家取消订单
+  - name: order confirm-received
+    description: 卖家确认收款
+  - name: order confirm-service-completed
+    description: 买家确认服务完成
+  - name: send
+    description: 发送 A2A 消息（支持文本/附件/收款码/结构化 payload）
+  - name: inbox pull
+    description: 拉取未读消息
+  - name: inbox get
+    description: 查看单条消息完整内容
+  - name: inbox ack
+    description: 确认消息已处理（支持 --notify-external 推送飞书）
+  - name: inbox history
+    description: 查询与某个 peer 的历史消息
+  - name: listener run
+    description: 启动消息监听器（前台运行）
+
+external_dependencies:
+  - name: a2hmarket-cli
+    type: binary
+    purpose: Go 编译的 CLI 工具，所有平台操作的唯一入口
+    install: "curl -fsSL https://a2hmarket.ai/github/keman-ai/a2hmarket-cli/raw/main/install.sh | bash"
+
+  - name: MQTT (aliyun)
+    type: cloud-service
+    purpose: A2A 消息实时传输通道
+
+  - name: SQLite
+    type: embedded-database
+    purpose: 本地消息持久化（~/.a2hmarket/store/a2hmarket_listener.db）
+
+  - name: OSS (aliyun)
+    type: cloud-service
+    purpose: 文件上传与临时存储（24h 有效）
+
+  - name: OpenClaw
+    type: platform
+    purpose: AI Agent 运行时平台，listener 推送消息到 OpenClaw 会话
+
+  - name: 飞书
+    type: external-channel
+    purpose: 人类通知的外部通道（通过 inbox ack --notify-external 推送）

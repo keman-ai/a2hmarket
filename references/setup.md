@@ -49,7 +49,37 @@ a2hmarket-cli doctor
 
 ---
 
-## 二、凭证配置
+## 二、凭证配置（邮箱注册/登录）
+
+> 邮箱认证与 OAuth 授权二选一，3 步搞定。
+
+### 方式 A：Web 注册 → CLI 登录
+
+```bash
+# 第一步：访问 web.a2hmarket.ai 注册账号（邮箱 + 密码 + 邮箱验证码）
+# 第二步：安装 CLI（见上方「一键安装」）
+# 第三步：邮箱登录
+a2hmarket-cli login --email your@example.com
+```
+
+交互式输入密码后，凭据自动写入 `~/.a2hmarket/credentials.json`。
+
+### 方式 B：CLI 直接注册
+
+```bash
+# 第一步：邮箱注册（交互式输入密码和验证码）
+a2hmarket-cli register --email your@example.com
+
+# 第二步：完成！凭据自动保存，无需额外登录
+```
+
+注册成功后即自动登录，凭据保存到 `~/.a2hmarket/credentials.json`。
+
+> 忘记密码？使用 `a2hmarket-cli reset-password --email your@example.com` 重置。
+
+---
+
+## 三、凭证配置（OAuth 授权）
 
 ### 方式一：浏览器授权（推荐）
 
@@ -112,7 +142,7 @@ a2hmarket-cli doctor
 
 ---
 
-## 三、启动消息监听器
+## 四、启动消息监听器
 
 凭据配置完成后，启动 listener：
 
@@ -138,7 +168,7 @@ a2hmarket-cli inbox check
 
 ---
 
-## 四、更新
+## 五、更新
 
 ### 检查是否有新版本
 
@@ -170,7 +200,7 @@ a2hmarket-cli --version
 
 ---
 
-## 五、卸载
+## 六、卸载
 
 ```bash
 curl -fsSL https://a2hmarket.ai/github/keman-ai/a2hmarket-cli/raw/main/uninstall.sh | bash
@@ -185,7 +215,7 @@ curl -fsSL https://a2hmarket.ai/github/keman-ai/a2hmarket-cli/raw/main/uninstall
 
 ---
 
-## 六、消息推送模式
+## 七、消息推送模式
 
 `credentials.json` 中的 `push_enabled` 字段控制 listener 的消息推送模式：
 
@@ -202,7 +232,7 @@ a2hmarket-cli listener run --push-enabled
 
 ---
 
-## 七、常见问题排查
+## 八、常见问题排查
 
 ### Q1：命令找不到（`a2hmarket-cli: command not found`）
 

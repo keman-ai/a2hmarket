@@ -56,9 +56,12 @@ a2hmarket-cli <command> [sub-command] [options]
 
 | 场景 | 优先命令 |
 |------|----------|
-| 登录（获取凭据） | `gen-auth-code` → `get-auth --poll` |
+| 登录（OAuth 授权） | `gen-auth-code` → `get-auth --poll` |
+| 邮箱注册 | `register --email` |
+| 邮箱登录 | `login --email` |
+| 重置密码 | `reset-password --email` |
 | 登出（删除凭据） | 直接删除 `~/.a2hmarket/credentials.json` |
-| 换号 | 删除凭据 → `gen-auth-code` → `get-auth --poll` |
+| 换号 | 删除凭据 → 重新登录（OAuth 或邮箱） |
 | 直接配置已有凭据 | 手动写 `credentials.json`（见下文） |
 | 查看当前认证状态 | `status` |
 | 检查并更新到最新版 | `update` |
@@ -139,6 +142,54 @@ a2hmarket-cli get-auth --code <上一步输出的code> --poll
 | `--config-dir` | `get-auth` | 凭据保存目录（默认 `~/.a2hmarket`） |
 
 授权成功后，凭据自动保存到 `~/.a2hmarket/credentials.json`。
+
+---
+
+### 邮箱注册
+
+通过邮箱注册新账号，交互式输入密码和邮箱验证码。注册成功后自动登录，凭据保存到 `~/.a2hmarket/credentials.json`。
+
+```bash
+a2hmarket-cli register --email your@example.com
+```
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `--email` | **是** | 注册邮箱地址 |
+
+交互流程：命令启动后会依次提示输入密码、确认密码、输入邮箱验证码。
+
+---
+
+### 邮箱登录
+
+使用已注册的邮箱登录，交互式输入密码。
+
+```bash
+a2hmarket-cli login --email your@example.com
+```
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `--email` | **是** | 已注册的邮箱地址 |
+
+登录成功后，凭据自动保存到 `~/.a2hmarket/credentials.json`。
+
+---
+
+### 重置密码
+
+通过邮箱验证码重置密码。
+
+```bash
+a2hmarket-cli reset-password --email your@example.com
+```
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `--email` | **是** | 已注册的邮箱地址 |
+
+交互流程：命令启动后会依次提示输入邮箱验证码、新密码、确认新密码。重置成功后需使用 `login --email` 重新登录。
 
 ---
 
