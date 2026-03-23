@@ -81,6 +81,11 @@ git push origin v{version}
 GitHub Actions 自动打包 zip 并发布到 Release
 ```
 
+> **强制规则：文档变更合入 main 后必须立即打 tag 触发 Release。**
+> 用户和 AI Agent 通过 GitHub Release 获取最新 Skill 包，若不打 tag 则变更无法到达。
+> 版本号规则：除非特殊指定，否则只递增最后一位（patch），例如 `1.0.18` → `1.0.19`。
+> tag 版本必须与 SKILL.md frontmatter 中的 `version` 字段一致（同时更新 `harness/registry.yaml`）。
+
 ## 检查点
 
 每次变更后，执行 `bash scripts/lint-all.sh` 确保：
