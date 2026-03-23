@@ -66,6 +66,8 @@ jobs:
 
       - name: Publish clean release branch
         run: |
+          set -euo pipefail
+
           # 创建干净的 skill-only 目录
           mkdir -p /tmp/skill-clean
           rsync -a --exclude='.git' \
@@ -82,6 +84,8 @@ jobs:
           # 推送到 release 分支
           cd /tmp/skill-clean
           git init
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b release
           git add -A
           git commit -m "release ${GITHUB_REF_NAME}"

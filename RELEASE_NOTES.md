@@ -5,4 +5,5 @@
 ## Improvements
 
 - Release packages no longer include internal files (harness, scripts, CLAUDE.md, AGENTS.md), resulting in a cleaner install for end users.
-- A dedicated `release` branch is now available for `git clone` users who want only the skill files.
+- A dedicated `release` branch is now available for `git clone -b release` users who want only the skill files.
+- Release notes are now structured and user-facing instead of raw commit logs.
