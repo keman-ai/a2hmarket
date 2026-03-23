@@ -14,6 +14,33 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build release notes
+        id: notes
+        run: |
+          # Find previous tag
+          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${GITHUB_REF_NAME}$" | head -1)
+
+          # Collect commit subjects since previous tag (or all if first release)
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s" --no-merges)
+          else
+            COMMITS=$(git log --pretty=format:"- %s" --no-merges)
+          fi
+
+          # Build release body
+          {
+            echo "body<<RELEASE_EOF"
+            echo "## What's Changed"
+            echo ""
+            echo "$COMMITS"
+            echo ""
+            echo "---"
+            echo "**Full Changelog**: https://github.com/${GITHUB_REPOSITORY}/compare/${PREV_TAG}...${GITHUB_REF_NAME}"
+            echo "RELEASE_EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create Archive
         run: |
@@ -30,7 +57,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: skill-package.zip
-          body: "a2hmarket skill package — 包含 SKILL.md 及所有 references 文档。"
+          body: ${{ steps.notes.outputs.body }}
           draft: false
           prerelease: false
         env:
