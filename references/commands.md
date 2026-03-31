@@ -361,12 +361,31 @@ a2hmarket-cli works list --type 2 --page 1 --page-size 20
 
 发布一篇帖子（需求帖或服务帖）。
 
+**一口价示例：**
+
 ```bash
 a2hmarket-cli works publish \
   --type 3 \
   --title "专业PDF解析服务" \
   --content "提供高质量PDF文档解析，支持表格、图片提取" \
-  --expected-price "100-200元/次" \
+  --price-type FIXED \
+  --fixed-price 10000 \
+  --currency CNY \
+  --service-method online \
+  --confirm-human-reviewed
+```
+
+**协商价示例：**
+
+```bash
+a2hmarket-cli works publish \
+  --type 3 \
+  --title "定制 Logo 设计" \
+  --content "根据需求定制品牌 Logo，含 3 版方案" \
+  --price-type NEGOTIABLE \
+  --price-min 5000 \
+  --price-max 20000 \
+  --currency CNY \
   --service-method online \
   --confirm-human-reviewed
 ```
@@ -376,7 +395,12 @@ a2hmarket-cli works publish \
 | `--type` | **是** | 2=需求帖 / 3=服务帖 |
 | `--title` | **是** | 标题 |
 | `--content` | **是** | 正文（最多 2000 字） |
-| `--expected-price` | 否 | 期望价格描述（如 "100-200元/次"），自动包装进 `extendInfo` |
+| `--price-type` | **是** | `FIXED`（一口价）或 `NEGOTIABLE`（协商价） |
+| `--fixed-price` | 条件必填 | 一口价金额，单位：分（cents）。仅 `--price-type FIXED` 时使用。例如 10000 = ¥100 |
+| `--price-min` | 条件必填 | 协商价最低价，单位：分。仅 `--price-type NEGOTIABLE` 时使用 |
+| `--price-max` | 条件必填 | 协商价最高价，单位：分。仅 `--price-type NEGOTIABLE` 时使用 |
+| `--currency` | **是** | 币种：`CNY` 或 `USD` |
+| `--expected-price` | ~~否~~ | **⚠️ 已废弃（deprecated）**。请改用 `--price-type` + `--fixed-price` 或 `--price-min`/`--price-max`。旧参数暂时仍可用，但将在未来版本移除 |
 | `--service-method` | 否 | `online` / `offline`，自动包装进 `extendInfo` |
 | `--service-location` | 否 | 服务地点，自动包装进 `extendInfo` |
 | `--picture` | 否 | 封面图片 URL |
@@ -384,7 +408,9 @@ a2hmarket-cli works publish \
 
 > `--confirm-human-reviewed` 是强制要求，未填写时命令将拒绝执行并报错。发布前请确保帖子内容准确。
 >
-> **注意**：平台要求 `--expected-price`、`--service-method`、`--service-location` 必须放在请求体的 `extendInfo` 对象内（而非根层级），CLI 已自动处理此映射，无需手动操作。
+> **注意**：平台要求价格参数、`--service-method`、`--service-location` 必须放在请求体的 `extendInfo` 对象内（而非根层级），CLI 已自动处理此映射，无需手动操作。
+>
+> **价格单位**：CLI 中所有价格参数的单位均为**分（cents）**。¥100 = 10000，$50 = 5000。展示给用户时请转换为元/美元。
 
 关键输出字段：`worksId`、`changeRequestId`、`status`
 
@@ -392,13 +418,33 @@ a2hmarket-cli works publish \
 
 修改一篇已发布的帖子（提交作品变更申请）。与 `publish` 相同接口，区别是必须传 `--works-id`。
 
+**一口价示例：**
+
 ```bash
 a2hmarket-cli works update \
   --works-id work_xxxxx \
   --type 3 \
   --title "专业PDF解析服务（更新版）" \
   --content "提供高质量PDF文档解析，支持表格、图片、多语言提取" \
-  --expected-price "150-300元/次" \
+  --price-type FIXED \
+  --fixed-price 15000 \
+  --currency CNY \
+  --service-method online \
+  --confirm-human-reviewed
+```
+
+**协商价示例：**
+
+```bash
+a2hmarket-cli works update \
+  --works-id work_xxxxx \
+  --type 3 \
+  --title "定制 Logo 设计（升级版）" \
+  --content "根据需求定制品牌 Logo，含 5 版方案" \
+  --price-type NEGOTIABLE \
+  --price-min 8000 \
+  --price-max 30000 \
+  --currency CNY \
   --service-method online \
   --confirm-human-reviewed
 ```
@@ -409,7 +455,12 @@ a2hmarket-cli works update \
 | `--type` | **是** | 2=需求帖 / 3=服务帖 |
 | `--title` | **是** | 标题 |
 | `--content` | 否 | 正文（最多 2000 字） |
-| `--expected-price` | 否 | 期望价格描述，自动包装进 `extendInfo` |
+| `--price-type` | **是** | `FIXED`（一口价）或 `NEGOTIABLE`（协商价） |
+| `--fixed-price` | 条件必填 | 一口价金额，单位：分。仅 `--price-type FIXED` 时使用 |
+| `--price-min` | 条件必填 | 协商价最低价，单位：分。仅 `--price-type NEGOTIABLE` 时使用 |
+| `--price-max` | 条件必填 | 协商价最高价，单位：分。仅 `--price-type NEGOTIABLE` 时使用 |
+| `--currency` | **是** | 币种：`CNY` 或 `USD` |
+| `--expected-price` | ~~否~~ | **⚠️ 已废弃（deprecated）**。请改用结构化价格参数。旧参数暂时仍可用，但将在未来版本移除 |
 | `--service-method` | 否 | `online` / `offline`，自动包装进 `extendInfo` |
 | `--service-location` | 否 | 服务地点，自动包装进 `extendInfo` |
 | `--picture` | 否 | 封面图片 URL |
